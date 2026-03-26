@@ -1,0 +1,36 @@
+TASK:
+  TYPE: "Detection" # options are [Detection, Segmentation, Multitask]
+MODEL:
+  NUM_CLASSES: 80
+  #  NUM_SEG_CLASSES: 4
+  HEAD:
+    DET_NAME: "NanoDetHead"
+  #    SEG_NAME: 'SINetSegmentation'
+  #    LOSS_WEIGHTS: {'seg': 10, 'aux': 2.5}
+  BACKBONE:
+    NAME: "HarDNet68"
+    OUT_CHANNELS: (320, 640, 1024)
+    FEATURE_MAPS: (64, 32, 16)
+    FEATURE_INDICES: (1, 2, 3)
+    EXTRA: True
+INPUT:
+  IMAGE_SIZE: 512
+DATASETS:
+  TRAIN: ("coco128-train",)
+  TEST: ("coco128-val",)
+  #  This is the local path (not required for ClearML)
+  PATH: "./output/"
+DATA_LOADER:
+  NUM_WORKERS: 8
+  INCLUDE_BACKGROUND: False
+SOLVER:
+  NAME: "SGD_optimizer"
+  MAX_ITER: 80000
+  LR_STEPS: [280000, 360000]
+  WARMUP_ITERS: 500
+  WEIGHT_DECAY: 1e-4
+  GAMMA: 0.1
+  BATCH_SIZE: 16
+  LR: 1e-3
+
+OUTPUT_DIR: "./output/"

@@ -1,0 +1,34 @@
+TASK:
+  TYPE: "Detection" # options are [Detection, Segmentation, Multitask]
+MODEL:
+  NUM_CLASSES: 11
+  #  NUM_SEG_CLASSES: 4
+  HEAD:
+    DET_NAME: "NanoDetHead"
+  BACKBONE:
+    NAME: "HarDNet68"
+    OUT_CHANNELS: (640, 1024, 512)
+    FEATURE_MAPS: (48, 24, 12)
+    FEATURE_INDICES: (2, 3, 4)
+    EXTRA: True
+INPUT:
+  IMAGE_SIZE: 768
+DATASETS:
+  TRAIN: ("damage_detection_old-train",)
+  TEST: ("damage_detection_old-val",)
+  #  This is the local path (not required for ClearML)
+  PATH: "/media/lensor/2TBdrive/datasets/damage_detection_old/ddd_torno"
+DATA_LOADER:
+  NUM_WORKERS: 8
+  INCLUDE_BACKGROUND: False
+SOLVER:
+  NAME: "SGD_optimizer"
+  MAX_ITER: 640000
+  LR_STEPS: [450000, 570000]
+  WARMUP_ITERS: 500
+  WEIGHT_DECAY: 1e-4
+  GAMMA: 0.1
+  BATCH_SIZE: 12
+  LR: 1e-3
+
+OUTPUT_DIR: "./output/"

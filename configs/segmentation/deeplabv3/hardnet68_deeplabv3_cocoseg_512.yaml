@@ -1,0 +1,39 @@
+TASK:
+  TYPE: "Segmentation" # options are [Detection, Segmentation, Multitask]
+MODEL:
+  NUM_SEG_CLASSES: 92
+  HEAD:
+    SEG_NAME: "DeepLabV3"
+    LOSS_WEIGHTS: { "seg": 10 }
+    ASPP_INDEX: 3
+    DECODER_INDEX: 3
+    OUTPUT_STRIDE: 16
+  BACKBONE:
+    NAME: "HarDNet68"
+    OUT_CHANNELS: (320, 640, 1024, 512, 512)
+    FEATURE_MAPS: (64, 32, 16, 8, 4)
+    FEATURE_INDICES: (1, 2, 3, 4, 5)
+    EXTRA: True
+INPUT:
+  IMAGE_SIZE: 512
+DATASETS:
+  TRAIN: ("coco_2017_stuff-train",)
+  TEST: ("coco_2017_stuff-val",)
+  PATH: "/home/lensor/Downloads/coco2017"
+DATA_LOADER:
+  LOCAL_MASKS: True
+  NUM_WORKERS: 8
+  INCLUDE_BACKGROUND: False
+SOLVER:
+  NAME: "SGD_optimizer"
+  MAX_ITER: 400000
+  LR_STEPS: [280000, 360000]
+  WARMUP_ITERS: 500
+  WEIGHT_DECAY: 1e-4
+  GAMMA: 0.1
+  BATCH_SIZE: 2
+  LR: 1e-3
+TEST:
+  BATCH_SIZE: 6
+
+OUTPUT_DIR: "/home/lensor/Downloads/hardnet68_nanodet512_coco2017_seg"

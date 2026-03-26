@@ -1,0 +1,32 @@
+TASK:
+  TYPE: "Detection" # options are [Detection, Segmentation, Multitask]
+MODEL:
+  NUM_CLASSES: 7
+  HEAD:
+    DET_NAME: "NanoDetHead"
+  BACKBONE:
+    NAME: "vovnet39"
+    OUT_CHANNELS: (512, 768, 1024, 512)
+    FEATURE_MAPS: (96, 48, 24, 12)
+    FEATURE_INDICES: (1, 2, 3, 4)
+    EXTRA: True
+INPUT:
+  IMAGE_SIZE: 768
+DATASETS:
+  TRAIN: ("damage_detection-train",)
+  TEST: ("damage_detection-val",)
+  #  This is the local path (not required for ClearML)
+  PATH: "/home/ratnajit/lensor/dataset/damage_detection/merged_dataset/"
+DATA_LOADER:
+  NUM_WORKERS: 8
+  INCLUDE_BACKGROUND: False
+SOLVER:
+  NAME: "SGD_optimizer"
+  MAX_ITER: 650000
+  LR_STEPS: [450000, 580000]
+  WARMUP_ITERS: 500
+  WEIGHT_DECAY: 1e-4
+  GAMMA: 0.1
+  BATCH_SIZE: 8
+  LR: 1e-3
+OUTPUT_DIR: "/home/ratnajit/lensor/training_runs/damage_detection/vovnet_nanodet768_dd/"

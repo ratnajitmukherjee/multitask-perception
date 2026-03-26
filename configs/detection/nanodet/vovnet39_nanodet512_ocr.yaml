@@ -1,0 +1,32 @@
+TASK:
+  TYPE: "Detection" # options are [Detection, Segmentation, Multitask]
+MODEL:
+  NUM_CLASSES: 36
+  HEAD:
+    DET_NAME: "NanoDetHead"
+  BACKBONE:
+    NAME: "vovnet39"
+    OUT_CHANNELS: (512, 768, 1024)
+    FEATURE_MAPS: (64, 32, 16)
+    FEATURE_INDICES: (1, 2, 3)
+    EXTRA: True
+INPUT:
+  IMAGE_SIZE: 512
+DATASETS:
+  TRAIN: ("ocr_v5-train",)
+  TEST: ("ocr_v5-test",)
+  #  This is the local path (not required for ClearML)
+  PATH: "/home/lensor/Documents/Datasets/ocr_v5_new"
+DATA_LOADER:
+  NUM_WORKERS: 8
+  INCLUDE_BACKGROUND: False
+SOLVER:
+  NAME: "SGD_optimizer"
+  MAX_ITER: 120000
+  LR_STEPS: [80000, 100000]
+  WARMUP_ITERS: 500
+  WEIGHT_DECAY: 1e-4
+  GAMMA: 0.1
+  BATCH_SIZE: 8
+  LR: 1e-3
+OUTPUT_DIR: "/home/lensor/Downloads/multitask_training/vovnet39_nanodet512_dd"

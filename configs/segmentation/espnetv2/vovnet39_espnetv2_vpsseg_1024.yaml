@@ -1,0 +1,38 @@
+TASK:
+  TYPE: "Segmentation" # options are [Detection, Segmentation, Multitask]
+MODEL:
+  #  NUM_CLASSES: 80
+  NUM_SEG_CLASSES: 94
+  HEAD:
+    #TODO: Remove det_name from clearml arguments
+    #DET_NAME: 'NanoDetHead'
+    SEG_NAME: "ESPNetv2Segmentation"
+    LOSS_WEIGHTS: { "seg": 10 } # ESPNetv2 does not have aux loss
+  BACKBONE:
+    NAME: "vovnet39"
+    OUT_CHANNELS: (512, 768, 1024, 512, 512)
+    FEATURE_MAPS: (128, 64, 32, 16, 8)
+    FEATURE_INDICES: (1, 2, 3, 4, 5)
+    EXTRA: True
+INPUT:
+  IMAGE_SIZE: 1024
+DATASETS:
+  TRAIN: ("1280_vps_ah_dhl-train",)
+  TEST: ("1280_vps_ah_dhl-val",)
+  PATH: "/media/lensor/2TBdrive/datasets/vps_coco_datasets/1280_vps_ah_dhl"
+DATA_LOADER:
+  LOCAL_MASKS: True
+  NUM_WORKERS: 8
+  INCLUDE_BACKGROUND: False
+SOLVER:
+  NAME: "SGD_optimizer"
+  MAX_ITER: 80000
+  LR_STEPS: [560000, 720000]
+  WARMUP_ITERS: 500
+  WEIGHT_DECAY: 1e-4
+  GAMMA: 0.1
+  BATCH_SIZE: 2
+  LR: 1e-3
+TEST:
+  BATCH_SIZE: 8
+OUTPUT_DIR: "/home/lensor/Downloads/multitask_training/inference_test"

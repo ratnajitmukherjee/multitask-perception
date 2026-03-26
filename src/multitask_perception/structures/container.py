@@ -2,7 +2,8 @@
 Help class for manage boxes, labels, etc...
 Not inherit dict due to `default_collate` will change dict's subclass to dict.
 Container is used to return the detections from the detection heads.
-TODO: Maybe this needs to be somewhat circumvented for ONNX support because ONNX does not support Containers.
+NOTE: ONNX export does not support Container. If ONNX export is needed,
+detection outputs should be returned as plain tensors instead.
 """
 
 

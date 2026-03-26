@@ -1,0 +1,39 @@
+TASK:
+  TYPE: "Multitask" # options are [Detection, Segmentation, Multitask]
+MODEL:
+  NUM_SEG_CLASSES: 92
+  NUM_CLASSES: 80
+  BACKBONE:
+    NAME: "vovnet39"
+    OUT_CHANNELS: (512, 768, 1024)
+    FEATURE_MAPS: (64, 32, 16)
+    FEATURE_INDICES: (1, 2, 3)
+    EXTRA: True
+  HEAD:
+    SEG_NAME: "DeepLabV3"
+    DET_NAME: "NanoDetHead"
+    LOSS_WEIGHTS: { "seg": 1 }
+    ASPP_INDEX: 2
+    DECODER_INDEX: 2
+    OUTPUT_STRIDE: 16
+INPUT:
+  IMAGE_SIZE: 512
+DATASETS:
+  TRAIN: ("coco_2017_multitask-train",)
+  TEST: ("coco_2017_multitask-val",)
+  PATH: "/home/lensor/Downloads/datasets/coco_2017_multitask"
+DATA_LOADER:
+  LOCAL_MASKS: True
+  NUM_WORKERS: 1
+  INCLUDE_BACKGROUND: False
+SOLVER:
+  NAME: "SGD_optimizer"
+  MAX_ITER: 400000
+  LR_STEPS: [280000, 360000]
+  WARMUP_ITERS: 500
+  WEIGHT_DECAY: 1e-4
+  GAMMA: 0.1
+  BATCH_SIZE: 2
+  LR: 1e-3
+
+OUTPUT_DIR: "home/lensor/Desktop/multitask_output"

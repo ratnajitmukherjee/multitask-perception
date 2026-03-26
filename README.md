@@ -1,277 +1,174 @@
-# MULTITASK PERCEPTION FOR AUTONOMOUS DRIVING
+# Multitask Perception for Autonomous Driving
+
 Unified PyTorch framework for multitask perception combining:
 - **Object Detection** (NanoDet, CenterNet)
 - **Semantic Segmentation** (SegFormer-B0, DeepLabV3, ESPNetV2)
-- **Monocular Depth Estimation** (Coming soon)
+- **Monocular Depth Estimation** (Planned)
 
 Built with Python 3.12, PyTorch 2.2, and designed for efficient training on resource-constrained GPUs.
 
-## 🚀 Features
+## Features
 
-- ✅ Efficient multitask learning with shared backbone
-- ✅ Support for multiple datasets (KITTI, nuScenes, BDD100K, Cityscapes)
-- ✅ Pseudo-labeling pipeline for depth estimation
-- ✅ Modular architecture - easy to extend
-- ✅ Video-ready design (temporal modules planned)
-- ✅ Docker support for reproducibility
-- ✅ Comprehensive type hints and documentation
+- Efficient multitask learning with shared backbone
+- Modular architecture - easy to extend with new heads/backbones
+- Multiple backbone options from lightweight to high-accuracy
+- Configurable via YAML experiment files
+- Docker support for reproducibility
 
-## 📋 Requirements
+## Requirements
 
 - Python 3.12+
-- CUDA 11.8+ (tested on GTX 1080 Ti)
+- CUDA 11.8+
 - 16GB+ RAM
-- 50GB+ storage for datasets
 
-## 🔧 Installation
+## Installation
 
-### Option 1: Poetry (Recommended)
+### Poetry (Recommended)
 
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/multitask-perception.git
+git clone https://github.com/ratnajitmukherjee/multitask-perception.git
 cd multitask-perception
 
-# Install with Poetry
 poetry install
-
-# Activate environment
 poetry shell
 
-# Verify installation
 python -c "import torch; print(f'PyTorch: {torch.__version__}, CUDA: {torch.cuda.is_available()}')"
 ```
 
-### Option 2: pip
+### pip
 
 ```bash
-# Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install package
+source .venv/bin/activate
 pip install -e .
 ```
 
-### Option 3: Docker
+### Docker
 
 ```bash
-# Build image
 docker build -t multitask-perception:latest .
-
-# Run container
 docker run --gpus all -it multitask-perception:latest
 ```
 
-## 🎯 Quick Start
+## Quick Start
 
 ### Training
 
 ```bash
-# Detection only
-python src/multitask_perception/tools/train.py \
-    --config configs/tasks/detection_only.yaml
+# CenterNet detection on VOC
+python train.py --config-file configs/detection/centernet/hardnet68_cnet512_voc0712.yaml
 
-# Segmentation only
-python src/multitask_perception/tools/train.py \
-    --config configs/tasks/segmentation_only.yaml
-
-# Full multitask (detection + segmentation)
-python src/multitask_perception/tools/train.py \
-    --config configs/experiments/kitti_multitask.yaml
+# NanoDet multitask (detection + segmentation)
+python train.py --config-file configs/multitask/deeplabv3/multitask_vovnet39_deeplabv3_vps_512.yaml
 ```
 
 ### Evaluation
 
 ```bash
-python src/multitask_perception/tools/eval.py \
-    --config configs/experiments/kitti_multitask.yaml \
-    --checkpoint outputs/checkpoints/best_model.pth
+python test.py --config-file configs/detection/centernet/hardnet68_cnet512_voc0712.yaml \
+    --ckpt outputs/model_final.pth
 ```
 
 ### Inference
 
 ```bash
-python src/multitask_perception/tools/infer.py \
-    --config configs/experiments/kitti_multitask.yaml \
-    --checkpoint outputs/checkpoints/best_model.pth \
-    --image path/to/image.jpg \
-    --output outputs/predictions/
+python infer.py --config-file configs/detection/centernet/hardnet68_cnet512_voc0712.yaml \
+    --ckpt outputs/model_final.pth \
+    --input path/to/images/ \
+    --output_dir outputs/predictions/
 ```
 
-## 📊 Supported Backbones
+## Supported Backbones
 
-| Backbone | Params | Speed | Best For |
-|----------|--------|-------|----------|
-| **MobileNetV3-Small** | 2.5M | ⚡⚡⚡ | Edge devices |
-| **MobileNetV3-Large** | 5.4M | ⚡⚡ | Mobile |
-| **VoVNet-27-slim** | 3.5M | ⚡⚡⚡ | Real-time |
-| **VoVNet-39** | 22.6M | ⚡⚡ | Balanced |
-| **HarDNet-68** | 17.6M | ⚡⚡ | Efficient |
-| **HarDNet-85** | 36.7M | ⚡ | High accuracy |
+| Backbone | Params | Best For |
+|----------|--------|----------|
+| **MobileNetV3-Small** | 2.5M | Edge devices |
+| **MobileNetV3-Large** | 5.4M | Mobile |
+| **VoVNet-27-slim** | 3.5M | Real-time |
+| **VoVNet-39** | 22.6M | Balanced |
+| **HarDNet-68** | 17.6M | Efficient |
+| **HarDNet-85** | 36.7M | High accuracy |
 
-## 🎯 Supported Heads
+## Supported Heads
 
 ### Detection
-- **NanoDet**: Anchor-free, fast, accurate
-- **CenterNet**: Keypoint-based detection
+- **NanoDet**: Anchor-free, lightweight, fast
+- **CenterNet**: Keypoint-based detection (optional DCN via `USE_DCN` config flag)
 
 ### Segmentation
-- **SegFormer-B0**: Modern transformer, 3.7M params
-- **DeepLabV3**: Classic, high accuracy, 40M+ params
-- **ESPNetV2**: Ultra-efficient, 0.8M params
+- **SegFormer-B0**: Transformer-based
+- **DeepLabV3**: Atrous convolution based
+- **ESPNetV2**: Ultra-efficient
 
-### Depth (Coming Soon)
-- Simple decoder
-- MonoDepth-style
+### Depth (Planned)
+- Simple decoder architecture
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 multitask-perception/
+├── train.py                    # Training entry point
+├── test.py                     # Evaluation entry point
+├── infer.py                    # Inference entry point
+├── configs/                    # YAML experiment configs
+│   ├── detection/              # Detection-only configs (CenterNet, NanoDet, SSD)
+│   ├── segmentation/           # Segmentation-only configs (DeepLabV3, ESPNetV2)
+│   └── multitask/              # Multitask configs (detection + segmentation)
 ├── src/multitask_perception/
-│   ├── core/
-│   │   ├── config/          # Configuration system
-│   │   ├── data/            # Datasets and transforms
-│   │   ├── modeling/        # Models, backbones, heads
-│   │   ├── engine/          # Training and evaluation
-│   │   ├── solver/          # Optimizers and schedulers
-│   │   └── utils/           # Utilities
-│   └── tools/               # Training/eval scripts
-├── configs/                 # Configuration files
-├── scripts/                 # Helper scripts
-├── tests/                   # Unit tests
-└── docs/                    # Documentation
+│   ├── config/                 # Python defaults and head sub-configs
+│   ├── data/                   # Datasets, transforms, samplers
+│   ├── modeling/
+│   │   ├── backbones/          # HarDNet, VoVNet, MobileNetV3
+│   │   ├── heads/
+│   │   │   ├── detection/      # CenterNet, NanoDet
+│   │   │   ├── segmentation/   # SegFormer, DeepLabV3, ESPNetV2
+│   │   │   └── depth/          # Planned
+│   │   ├── layers/             # SeparableConv2d, L2Norm, EfficientPWConv
+│   │   └── losses/             # FocalLoss, SegmentationLoss
+│   ├── engine/                 # Training and evaluation loops
+│   ├── solver/                 # Optimizers and LR schedulers
+│   ├── structures/             # Container for detection outputs
+│   └── utils/                  # Checkpointing, metrics, visualization
+├── scripts/                    # Dataset preparation scripts
+├── pyproject.toml              # Poetry project config
+├── Dockerfile
+└── docker-compose.yml
 ```
 
-## 🔬 Dataset Preparation
+## Configuration
 
-### KITTI
-
-```bash
-# Download KITTI dataset
-# See docs/dataset_preparation.md for details
-
-python scripts/dataset_preparation/prepare_kitti.py \
-    --data-root data/kitti \
-    --output data/kitti_processed
-```
-
-### nuScenes
-
-```bash
-python scripts/dataset_preparation/prepare_nuscenes.py \
-    --data-root data/nuscenes \
-    --output data/nuscenes_processed
-```
-
-## 📝 Configuration
-
-Configurations are in YAML format:
+Python defaults live in `src/multitask_perception/config/defaults.py`. Experiment-specific overrides are YAML files under `configs/`:
 
 ```yaml
-# configs/experiments/my_experiment.yaml
-TASK:
-  ENABLED: ['detection', 'segmentation']
-
 MODEL:
+  NUM_CLASSES: 20
   BACKBONE:
-    NAME: 'vovnet39'
-  HEADS:
-    DETECTION:
-      NAME: 'NanoDet'
-    SEGMENTATION:
-      NAME: 'SegFormer'
-
+    NAME: 'HarDNet68'
+    OUT_CHANNEL: 1024
+  HEAD:
+    DET_NAME: 'CenterNetHead'
+    HEAD_CONFIG: {'hm':20, 'wh': 2, 'reg': 2}
+    LOSS_WEIGHTS: {'hm':1, 'wh': 0.1, 'reg': 1}
 SOLVER:
-  BASE_LR: 0.001
-  MAX_ITER: 100000
+  NAME: 'SGD_optimizer'
+  MAX_ITER: 120000
+  BATCH_SIZE: 8
+  LR: 1e-3
+OUTPUT_DIR: './outputs/my_experiment'
 ```
 
-## 🐳 Docker
-
-```bash
-# Build
-docker build -t multitask-perception:latest .
-
-# Run training
-docker-compose up train
-
-# Run Jupyter
-docker-compose up jupyter
-
-# Interactive shell
-docker run --gpus all -it multitask-perception:latest bash
-```
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run specific test
-pytest tests/test_modeling/test_model.py
-
-# With coverage
-pytest --cov=src/multitask_perception
-```
-
-## 📈 Logging
-
-### TensorBoard
-
-```bash
-tensorboard --logdir outputs/logs
-```
-
-### Weights & Biases
-
-```bash
-# Set API key
-export WANDB_API_KEY=your_key
-
-# Training will auto-log to W&B
-```
-
-## 🚧 Roadmap
+## Roadmap
 
 - [x] Core multitask architecture
 - [x] Detection heads (NanoDet, CenterNet)
 - [x] Segmentation heads (SegFormer, DeepLabV3, ESPNetV2)
+- [x] Solver module (SGD, Adam, Cosine/MultiStep/Polynomial schedulers)
+- [x] Custom layers (SeparableConv2d, EfficientPyrPool, ESPNetV2 blocks)
 - [ ] Depth estimation head
-- [ ] Pseudo-labeling pipeline
 - [ ] Video support (temporal modules)
 - [ ] Object tracking integration
-- [ ] Model optimization (ONNX, TensorRT)
-- [ ] Deployment tools
+- [ ] ONNX export support
 
-## 📚 Documentation
+## Contact
 
-See [docs/](docs/) for detailed documentation:
-- [Installation Guide](docs/installation.md)
-- [Dataset Preparation](docs/dataset_preparation.md)
-- [Training Guide](docs/training.md)
-- [Configuration Reference](docs/configuration.md)
-
-## 🤝 Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## 🙏 Acknowledgments
-
-- Based on research in multitask learning for autonomous driving
-- Inspired by MMDetection, Detectron2, and SegFormer architectures
-- Built with PyTorch and modern ML best practices
-
-## 📧 Contact
-
-For questions or issues, please open a GitHub issue or contact [ratnajitmukherjee@gmail.com]
-
----
-
-**Happy Training!** 🚀
+For questions or issues, please open a GitHub issue or contact ratnajitmukherjee@gmail.com

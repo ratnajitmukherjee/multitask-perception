@@ -1,0 +1,36 @@
+TASK:
+  TYPE: "Segmentation" # options are [Detection, Segmentation, Multitask]
+MODEL:
+  #  NUM_CLASSES: 80
+  NUM_SEG_CLASSES: 94
+  HEAD:
+    #    DET_NAME: 'NanoDetHead'
+    SEG_NAME: "ESPNetv2Segmentation"
+    LOSS_WEIGHTS: { "seg": 10 } # ESPNetv2 does not have aux loss
+  BACKBONE:
+    NAME: "HarDNet68"
+    OUT_CHANNELS: (320, 640, 1024, 512, 512)
+    FEATURE_MAPS: (64, 32, 16, 8, 4)
+    FEATURE_INDICES: (1, 2, 3, 4, 5)
+    EXTRA: True
+INPUT:
+  IMAGE_SIZE: 512
+DATASETS:
+  TRAIN: ("coco_vps_ah_dhl_updated_val",)
+  TEST: ("coco_vps_ah_dhl_updated_val",)
+  PATH: "/home/lensor/Desktop/vps_ah_dhl_updated"
+DATA_LOADER:
+  LOCAL_MASKS: True
+  NUM_WORKERS: 8
+  INCLUDE_BACKGROUND: False
+SOLVER:
+  NAME: "SGD_optimizer"
+  MAX_ITER: 800000
+  LR_STEPS: [560000, 720000]
+  WARMUP_ITERS: 500
+  WEIGHT_DECAY: 1e-4
+  GAMMA: 0.1
+  BATCH_SIZE: 1
+  LR: 1e-3
+
+OUTPUT_DIR: "/home/lensor/Downloads/hardnet68_nanodet512_vpsseg"
