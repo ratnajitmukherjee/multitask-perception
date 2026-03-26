@@ -8,22 +8,40 @@ import yaml
 import torch
 import torch.utils.data
 
-from od.engine.inference import do_evaluation
-from od.modeling.detector import build_detection_model
-from od.utils import dist_util
-from od.utils.checkpoint import CheckPointer
-from od.utils.dist_util import synchronize
-from od.utils.logger import setup_logger
-from od.utils.flops_counter import get_model_complexity_info
-from od.utils.energy_meter import EnergyMeter
+from multitask_perception.engine.inference import do_evaluation
+from multitask_perception.modeling.build import build_model
+from multitask_perception.utils import dist_util
+from multitask_perception.utils.checkpoint import CheckPointer
+from multitask_perception.utils.dist_util import synchronize
+from multitask_perception.utils.flops_counter import get_model_complexity_info
+from multitask_perception.utils.energy_meter import EnergyMeter
 from contextlib import ExitStack
-from od.default_config.import_cfg import *
+from multitask_perception.config import get_cfg_defaults, sub_cfg_dict
+
+cfg = get_cfg_defaults()
+
+
+def setup_logger(name, rank, output_dir):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    if rank == 0:
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        if output_dir:
+            fh = logging.FileHandler(os.path.join(output_dir, "log.txt"))
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+    return logger
 
 
 def evaluation(cfg, ckpt, eval_only, calc_energy, distributed, precision_display, iou_threshold, dataset_type, args_outputdir):
     logger = logging.getLogger("Object Detection.inference")
 
-    model = build_detection_model(cfg)
+    model = build_model(cfg)
 
     checkpointer = CheckPointer(model, save_dir=cfg.OUTPUT_DIR, logger=logger)
     device = torch.device(cfg.MODEL.DEVICE)

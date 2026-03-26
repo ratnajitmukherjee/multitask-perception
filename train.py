@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import logging
 import os
@@ -6,23 +7,44 @@ import yaml
 import torch
 import torch.distributed as dist
 from numpy import random
-from od.engine.inference import do_evaluation
-from od.data.build import make_data_loader
-from od.engine.trainer import do_train
-from od.modeling.detector import build_detection_model
-from od.solver import make_optimizer
-from od.solver.lr_scheduler import make_lr_scheduler
-from od.utils import dist_util, mkdir
-from od.utils.checkpoint import CheckPointer
-from od.utils.dist_util import synchronize
-from od.utils.logger import setup_logger
-from od.utils.misc import str2bool
-from od.default_config.import_cfg import *
+from multitask_perception.engine.inference import do_evaluation
+from multitask_perception.data.build import make_data_loader
+from multitask_perception.engine.trainer import do_train
+from multitask_perception.modeling.build import build_model
+from multitask_perception.solver import make_optimizer
+from multitask_perception.solver.lr_scheduler import make_lr_scheduler
+from multitask_perception.utils import dist_util, mkdir
+from multitask_perception.utils.checkpoint import CheckPointer
+from multitask_perception.utils.dist_util import synchronize
+from multitask_perception.config import get_cfg_defaults, sub_cfg_dict
+
+cfg = get_cfg_defaults()
+
+
+def str2bool(s):
+    return s.lower() in ("true", "1", "yes")
+
+
+def setup_logger(name, rank, output_dir):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    if rank == 0:
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        if output_dir:
+            fh = logging.FileHandler(os.path.join(output_dir, "log.txt"))
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+    return logger
 
 
 def train(cfg, args):
     logger = logging.getLogger(cfg.LOGGER.NAME + ".trainer")
-    model = build_detection_model(cfg)
+    model = build_model(cfg)
 
     if args.distributed:
         torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
