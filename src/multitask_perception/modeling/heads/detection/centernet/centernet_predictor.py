@@ -6,8 +6,6 @@ import math
 
 import torch.nn as nn
 
-from multitask_perception.modeling.heads.detection.centernet.dcn_v2.dcn.dcn_v2 import DCN
-
 
 class CenterNetHeadPredictor(nn.Module):
     def __init__(self, cfg):
@@ -21,6 +19,16 @@ class CenterNetHeadPredictor(nn.Module):
         self.heads = cfg.MODEL.HEAD.HEAD_CONFIG
         self.head_conv = cfg.MODEL.HEAD.HEAD_CONV
         self.deconv_with_bias = False
+        self.use_dcn = getattr(cfg.MODEL.HEADS.DETECTION, "USE_DCN", False)
+
+        if self.use_dcn:
+            from multitask_perception.modeling.heads.detection.centernet.dcn_v2.dcn import dcn_v2 as _dcn_module
+            if _dcn_module._backend is None:
+                raise RuntimeError(
+                    "USE_DCN is enabled but the DCN v2 CUDA extension is not compiled. "
+                    "Build it with: cd src/multitask_perception/modeling/heads/detection/centernet/dcn_v2 && bash make.sh"
+                )
+            self._dcn_cls = _dcn_module.DCN
 
         # creating the deconv_blocks
         self.deconv_layers = self._make_deconv_layer(
@@ -116,18 +124,26 @@ class CenterNetHeadPredictor(nn.Module):
             # getting the number of output channels from deconv layer configuration
             planes = deconv_layer_config[i]
 
-            # adding the deformable convolution
-            # TODO: There should a flag "useDCN" which when set to False uses a normal Conv2D layer instead of DCN
-            # results are not much affected by this
-            fc = DCN(
-                self.inplanes,
-                planes,
-                kernel_size=(3, 3),
-                stride=1,
-                padding=1,
-                dilation=1,
-                deformable_groups=1,
-            )
+            # adding the deformable convolution or standard Conv2d based on USE_DCN flag
+            if self.use_dcn:
+                fc = self._dcn_cls(
+                    self.inplanes,
+                    planes,
+                    kernel_size=(3, 3),
+                    stride=1,
+                    padding=1,
+                    dilation=1,
+                    deformable_groups=1,
+                )
+            else:
+                fc = nn.Conv2d(
+                    self.inplanes,
+                    planes,
+                    kernel_size=(3, 3),
+                    stride=1,
+                    padding=1,
+                    bias=True,
+                )
 
             # adding the conv2d transpose
             upconv = nn.ConvTranspose2d(

@@ -48,6 +48,7 @@ _C.MODEL.HEADS = CN()
 _C.MODEL.HEADS.DETECTION = CN()
 _C.MODEL.HEADS.DETECTION.NAME = "NanoDet"  # Options: NanoDet, CenterNet
 _C.MODEL.HEADS.DETECTION.NUM_CLASSES = 10
+_C.MODEL.HEADS.DETECTION.USE_DCN = False  # Use Deformable Conv (requires compiled C++/CUDA ext); False uses standard Conv2d
 
 # Segmentation Head
 _C.MODEL.HEADS.SEGMENTATION = CN()
