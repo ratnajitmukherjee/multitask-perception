@@ -1,0 +1,85 @@
+# Base configuration for multitask perception
+# This file contains common settings that can be inherited by experiments
+
+TASK:
+  ENABLED: ["detection", "segmentation"]
+
+MODEL:
+  DEVICE: "cuda"
+  
+  BACKBONE:
+    NAME: "hardnet68"
+    PRETRAINED: false
+    FREEZE: false
+  
+  NECK:
+    ENABLED: false
+  
+  TEMPORAL:
+    ENABLED: false
+  
+  HEADS:
+    DETECTION:
+      NAME: "NanoDet"
+      NUM_CLASSES: 10
+    
+    SEGMENTATION:
+      NAME: "SegFormer"
+      NUM_CLASSES: 19
+  
+  LOSS_WEIGHTS:
+    DETECTION: 1.0
+    SEGMENTATION: 2.0
+
+INPUT:
+  IMAGE_SIZE: 640
+  PIXEL_MEAN: [0.485, 0.456, 0.406]
+  PIXEL_STD: [0.229, 0.224, 0.225]
+  FORMAT: "RGB"
+
+DATASETS:
+  TRAIN: ["kitti_train"]
+  VAL: ["kitti_val"]
+  TEST: ["kitti_test"]
+
+DATALOADER:
+  NUM_WORKERS: 8
+  BATCH_SIZE: 8
+  SHUFFLE: true
+  PIN_MEMORY: true
+  DROP_LAST: true
+
+SOLVER:
+  OPTIMIZER: "AdamW"
+  BASE_LR: 0.001
+  WEIGHT_DECAY: 0.0001
+  BETAS: [0.9, 0.999]
+  
+  LR_SCHEDULER: "CosineAnnealing"
+  WARMUP_ITERS: 1000
+  WARMUP_FACTOR: 0.001
+  MAX_ITER: 100000
+  
+  CLIP_GRAD:
+    ENABLED: false
+    MAX_NORM: 1.0
+
+TRAINING:
+  CHECKPOINT_PERIOD: 5000
+  EVAL_PERIOD: 5000
+  LOG_PERIOD: 50
+  MIXED_PRECISION: true
+  RESUME: ""
+
+TEST:
+  BATCH_SIZE: 1
+  EVAL_METRICS: ["mAP", "mIoU"]
+
+OUTPUT_DIR: "./outputs"
+
+LOGGER:
+  NAME: "multitask_perception"
+  DEBUG_MODE: false
+
+SEED: 42
+CUDNN_BENCHMARK: true

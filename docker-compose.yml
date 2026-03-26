@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Training service
+  train:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: multitask-perception:latest
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/workspace/data:ro
+      - ./outputs:/workspace/outputs
+      - ./configs:/workspace/configs:ro
+      - ./pretrained:/workspace/pretrained
+    shm_size: '8gb'
+    command: >
+      python src/multitask_perception/tools/train.py
+      --config configs/experiments/kitti_multitask.yaml
+
+  # Evaluation service
+  eval:
+    image: multitask-perception:latest
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/workspace/data:ro
+      - ./outputs:/workspace/outputs:ro
+      - ./configs:/workspace/configs:ro
+    command: >
+      python src/multitask_perception/tools/eval.py
+      --config configs/experiments/kitti_multitask.yaml
+      --checkpoint outputs/checkpoints/best_model.pth
+
+  # Jupyter notebook service
+  jupyter:
+    image: multitask-perception:latest
+    runtime: nvidia
+    ports:
+      - "8888:8888"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./:/workspace
+    command: >
+      jupyter notebook
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token=''
+      --NotebookApp.password=''
+
+  # TensorBoard service
+  tensorboard:
+    image: multitask-perception:latest
+    ports:
+      - "6006:6006"
+    volumes:
+      - ./outputs/logs:/workspace/logs:ro
+    command: tensorboard --logdir=/workspace/logs --host=0.0.0.0 --port=6006
+
+  # Interactive development container
+  dev:
+    image: multitask-perception:latest
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./:/workspace
+    stdin_open: true
+    tty: true
+    command: /bin/bash
