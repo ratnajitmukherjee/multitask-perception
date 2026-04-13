@@ -1,38 +1,39 @@
 TASK:
-  TYPE: "Segmentation" # options are [Detection, Segmentation, Multitask]
+  ENABLED: ["segmentation"] # options are [Detection, Segmentation, Multitask]
 MODEL:
-  NUM_SEG_CLASSES: 92
   BACKBONE:
     NAME: "vovnet39"
     OUT_CHANNELS: (512, 768, 1024, 512)
     FEATURE_MAPS: (128, 64, 32, 16)
     FEATURE_INDICES: (1, 2, 3, 4)
     EXTRA: True
-  HEAD:
-    SEG_NAME: "DeepLabV3"
-    LOSS_WEIGHTS: { "seg": 10 }
-    ASPP_INDEX: 2
-    DECODER_INDEX: 2
-    OUTPUT_STRIDE: 16
+  HEADS:
+    SEGMENTATION:
+      NUM_CLASSES: 92
+      NAME: "DeepLabV3"
+      LOSS_WEIGHTS: { "seg": 10 }
+      ASPP_INDEX: 2
+      DECODER_INDEX: 2
+      OUTPUT_STRIDE: 16
 INPUT:
   IMAGE_SIZE: 1024
 DATASETS:
-  TRAIN: ("damage_detection_golden_easy-train",)
-  TEST: ("damage_detection_golden_easy-val",)
+  TRAIN: ["damage_detection_golden_easy-train"]
+  TEST: ["damage_detection_golden_easy-val"]
   PATH: "/home/lensor/Downloads/datasets/DD_GoldenDataset_easy"
-DATA_LOADER:
+DATALOADER:
+  BATCH_SIZE: 2
   LOCAL_MASKS: True
   NUM_WORKERS: 8
   INCLUDE_BACKGROUND: False
 SOLVER:
-  NAME: "SGD_optimizer"
+  OPTIMIZER: "SGD_optimizer"
   MAX_ITER: 400000
   LR_STEPS: [280000, 360000]
   WARMUP_ITERS: 500
   WEIGHT_DECAY: 1e-4
   GAMMA: 0.1
-  BATCH_SIZE: 2
-  LR: 1e-3
+  BASE_LR: 1e-3
 TEST:
   BATCH_SIZE: 6
 OUTPUT_DIR: "/home/lensor/Downloads/vovnet39_deeplabv3_dd_1024"

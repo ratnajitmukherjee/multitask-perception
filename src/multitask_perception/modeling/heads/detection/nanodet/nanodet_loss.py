@@ -55,21 +55,21 @@ class NanoDetLoss(nn.Module):
     ):
         super().__init__()
         self.img_size = (cfg.INPUT.IMAGE_SIZE, cfg.INPUT.IMAGE_SIZE)
-        self.num_classes = cfg.MODEL.NUM_CLASSES
+        self.num_classes = cfg.MODEL.HEADS.DETECTION.NUM_CLASSES
         self.use_sigmoid_cls = True
-        self.cls_out_channels = cfg.MODEL.NUM_CLASSES
-        self.reg_max = cfg.MODEL.HEAD.REG_MAX
-        self.anchor_strides = cfg.MODEL.HEAD.STRIDES
+        self.cls_out_channels = cfg.MODEL.HEADS.DETECTION.NUM_CLASSES
+        self.reg_max = cfg.MODEL.HEADS.DETECTION.REG_MAX
+        self.anchor_strides = cfg.MODEL.HEADS.DETECTION.STRIDES
         self.distribution_project = Integral(self.reg_max)
-        octave_base_scale = cfg.MODEL.LOSS.OCTAVE_BASE_SCALE
-        scales_per_octave = cfg.MODEL.LOSS.SCALES_PER_OCTAVE
+        octave_base_scale = cfg.MODEL.HEADS.DETECTION.LOSS.OCTAVE_BASE_SCALE
+        scales_per_octave = cfg.MODEL.HEADS.DETECTION.LOSS.SCALES_PER_OCTAVE
 
         self.loss_qfl = QualityFocalLoss(use_sigmoid=True, beta=2.0, loss_weight=1.0)
         self.loss_dfl = DistributionFocalLoss(loss_weight=0.25)
         self.loss_bbox = GIoULoss(loss_weight=2.0)
 
         self.anchor_base_sizes = (
-            list(cfg.MODEL.HEAD.STRIDES)
+            list(cfg.MODEL.HEADS.DETECTION.STRIDES)
             if anchor_base_sizes is None
             else anchor_base_sizes
         )

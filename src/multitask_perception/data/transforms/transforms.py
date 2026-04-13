@@ -649,7 +649,7 @@ class PhotometricDistort:
 
 class ImageDescription:
     def __init__(self, cfg):
-        self.batch_size = cfg.SOLVER.BATCH_SIZE
+        self.batch_size = cfg.DATALOADER.BATCH_SIZE
         self.multi_scale_step = cfg.INPUT.MULTI_SCALE_STEP
         self.input_sizes = np.array(cfg.INPUT.SCALES)
         self.current_size = None

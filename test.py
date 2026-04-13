@@ -124,10 +124,13 @@ def main():
         torch.distributed.init_process_group(backend="nccl", init_method="env://")
         synchronize()
 
-    det_head = yaml.load(open(args.config_file), Loader=yaml.FullLoader)["MODEL"]["HEAD"]["DET_NAME"]
-    sub_cfg = sub_cfg_dict[det_head]
-
-    cfg.merge_from_other_cfg(sub_cfg)
+    # Merge head-specific sub-config if detection is enabled
+    raw_cfg = yaml.load(open(args.config_file), Loader=yaml.FullLoader)
+    tasks = raw_cfg.get("TASK", {}).get("ENABLED", ["detection"])
+    if "detection" in tasks:
+        det_head = raw_cfg["MODEL"]["HEADS"]["DETECTION"]["NAME"]
+        if det_head in sub_cfg_dict:
+            cfg.merge_from_other_cfg(sub_cfg_dict[det_head])
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()

@@ -40,10 +40,10 @@ def _accumulate_predictions_from_multiple_gpus(predictions_per_gpu):
 
 def compute_on_dataset(cfg, model, data_loader, device, precision_display):
     # FIXING THE SEGMENTATION NUMBER OF CLASSES
-    if not cfg.DATA_LOADER.INCLUDE_BACKGROUND:
-        classes = int(cfg.MODEL.NUM_SEG_CLASSES) + 1
+    if not cfg.DATALOADER.INCLUDE_BACKGROUND:
+        classes = int(cfg.MODEL.HEADS.SEGMENTATION.NUM_CLASSES) + 1
     else:
-        classes = int(cfg.MODEL.NUM_SEG_CLASSES)
+        classes = int(cfg.MODEL.HEADS.SEGMENTATION.NUM_CLASSES)
 
     conf_mat = ConfusionMatrix(classes)
 

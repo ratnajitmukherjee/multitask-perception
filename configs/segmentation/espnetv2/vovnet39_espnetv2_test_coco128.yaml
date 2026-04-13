@@ -1,34 +1,35 @@
 TASK:
-  TYPE: "Segmentation" # options are [Detection, Segmentation, Multitask]
+  ENABLED: ["segmentation"] # options are [Detection, Segmentation, Multitask]
 MODEL:
-  NUM_SEG_CLASSES: 94
   BACKBONE:
     NAME: "vovnet39"
     OUT_CHANNELS: (512, 768, 1024)
     FEATURE_MAPS: (64, 32, 16)
     FEATURE_INDICES: (1, 2, 3)
     EXTRA: True
-  HEAD:
-    SEG_NAME: "ESPNetv2Segmentation"
-    LOSS_WEIGHTS: { "seg": 10 }
+  HEADS:
+    SEGMENTATION:
+      NUM_CLASSES: 94
+      NAME: "ESPNetV2"
+      LOSS_WEIGHTS: { "seg": 10 }
 INPUT:
   IMAGE_SIZE: 512
 DATASETS:
-  TRAIN: ("coco_128-train",)
-  TEST: ("coco_128-val",)
+  TRAIN: ["coco_128-train"]
+  TEST: ["coco_128-val"]
   PATH: "/home/lensor/Downloads/coco2017"
-DATA_LOADER:
+DATALOADER:
+  BATCH_SIZE: 12
   LOCAL_MASKS: True
   NUM_WORKERS: 8
   INCLUDE_BACKGROUND: False
 SOLVER:
-  NAME: "SGD_optimizer"
+  OPTIMIZER: "SGD_optimizer"
   MAX_ITER: 4000
   LR_STEPS: [2800, 3600]
   WARMUP_ITERS: 500
   WEIGHT_DECAY: 1e-4
   GAMMA: 0.1
-  BATCH_SIZE: 12
-  LR: 1e-3
+  BASE_LR: 1e-3
 
 OUTPUT_DIR: "/home/lensor/Downloads/hardnet68_nanodet512_coco2017_seg"

@@ -18,9 +18,9 @@ class CtdetLoss(torch.nn.Module):
         self.crit_reg = RegL1Loss()
         self.crit_wh = RegL1Loss()
         self.cfg = cfg
-        self.hm_weight = self.cfg.MODEL.HEAD.LOSS_WEIGHTS["hm"]
-        self.wh_weight = self.cfg.MODEL.HEAD.LOSS_WEIGHTS["wh"]
-        self.off_weight = self.cfg.MODEL.HEAD.LOSS_WEIGHTS["reg"]
+        self.hm_weight = self.cfg.MODEL.HEADS.DETECTION.LOSS_WEIGHTS["hm"]
+        self.wh_weight = self.cfg.MODEL.HEADS.DETECTION.LOSS_WEIGHTS["wh"]
+        self.off_weight = self.cfg.MODEL.HEADS.DETECTION.LOSS_WEIGHTS["reg"]
 
     def forward(self, outputs, batch):
         batch = batch["boxes"]

@@ -16,4 +16,4 @@ __all__ = [
 
 
 def make_lr_scheduler(cfg, optimizer, milestones=None):
-    return registry.SCHEDULERS[cfg.SCHEDULER.TYPE](cfg, optimizer, milestones)
+    return registry.SCHEDULERS[cfg.SOLVER.LR_SCHEDULER](cfg, optimizer, milestones)

@@ -3,6 +3,15 @@ Default configuration for multitask perception.
 
 This module defines all configuration parameters with their default values
 using YACS (Yet Another Configuration System).
+
+Config Schema (NEW — canonical):
+    TASK.ENABLED            list of enabled tasks
+    MODEL.HEADS.DETECTION   detection head config (new_allowed for head-specific keys)
+    MODEL.HEADS.SEGMENTATION  segmentation head config
+    DATALOADER              dataloader config (no underscore)
+    SOLVER.OPTIMIZER        optimizer name (not SOLVER.NAME)
+    SOLVER.BASE_LR          learning rate (not SOLVER.LR)
+    SOLVER.LR_SCHEDULER     scheduler type (not SCHEDULER.TYPE)
 """
 
 from yacs.config import CfgNode as CN
@@ -23,12 +32,14 @@ _C.MODEL = CN()
 _C.MODEL.DEVICE = "cuda"
 _C.MODEL.META_ARCHITECTURE = "MultitaskPerceptionModel"
 
-# Backbone
-_C.MODEL.BACKBONE = CN()
+# Backbone (new_allowed=True: backbone-specific keys vary per architecture)
+_C.MODEL.BACKBONE = CN(new_allowed=True)
 _C.MODEL.BACKBONE.NAME = "hardnet68"  # Options: hardnet68, hardnet85, vovnet27_slim, vovnet39, mobilenet_v3_small, mobilenet_v3_large
 _C.MODEL.BACKBONE.PRETRAINED = False
 _C.MODEL.BACKBONE.FREEZE = False
-
+_C.MODEL.BACKBONE.OUT_CHANNELS = ()  # Backbone output channel sizes (tuple, set per config)
+_C.MODEL.BACKBONE.FEATURE_MAPS = ()  # Feature map sizes (CenterNet)
+_C.MODEL.BACKBONE.FEATURE_INDICES = ()  # Feature indices for FPN/PAN (NanoDet)
 # Neck (optional, currently disabled)
 _C.MODEL.NECK = CN()
 _C.MODEL.NECK.ENABLED = False
@@ -44,14 +55,14 @@ _C.MODEL.TEMPORAL.NUM_LAYERS = 2
 # Task Heads
 _C.MODEL.HEADS = CN()
 
-# Detection Head
-_C.MODEL.HEADS.DETECTION = CN()
+# Detection Head (new_allowed=True: head-specific keys come from sub-configs and YAMLs)
+_C.MODEL.HEADS.DETECTION = CN(new_allowed=True)
 _C.MODEL.HEADS.DETECTION.NAME = "NanoDet"  # Options: NanoDet, CenterNet
 _C.MODEL.HEADS.DETECTION.NUM_CLASSES = 10
-_C.MODEL.HEADS.DETECTION.USE_DCN = False  # Use Deformable Conv (requires compiled C++/CUDA ext); False uses standard Conv2d
+_C.MODEL.HEADS.DETECTION.USE_DCN = False  # Deformable Conv (requires compiled ext)
 
-# Segmentation Head
-_C.MODEL.HEADS.SEGMENTATION = CN()
+# Segmentation Head (new_allowed=True: head-specific keys vary per seg model)
+_C.MODEL.HEADS.SEGMENTATION = CN(new_allowed=True)
 _C.MODEL.HEADS.SEGMENTATION.NAME = "SegFormer"  # Options: SegFormer, DeepLabV3, ESPNetV2
 _C.MODEL.HEADS.SEGMENTATION.NUM_CLASSES = 19
 
@@ -74,6 +85,8 @@ _C.INPUT.IMAGE_SIZE = 640  # Input image size
 _C.INPUT.PIXEL_MEAN = [0.485, 0.456, 0.406]  # ImageNet mean
 _C.INPUT.PIXEL_STD = [0.229, 0.224, 0.225]  # ImageNet std
 _C.INPUT.FORMAT = "RGB"  # or "BGR"
+_C.INPUT.MULTI_SCALE_STEP = 40  # Multi-scale training: batches per scale change
+_C.INPUT.SCALES = []  # Multi-scale training: list of input sizes
 
 # ---------------------------------------------------------------------------- #
 # Dataset Configuration
@@ -82,6 +95,7 @@ _C.DATASETS = CN()
 _C.DATASETS.TRAIN = ["kitti_train"]  # List of training datasets
 _C.DATASETS.VAL = ["kitti_val"]  # List of validation datasets
 _C.DATASETS.TEST = ["kitti_test"]  # List of test datasets
+_C.DATASETS.PATH = ""  # Dataset root path
 
 # ---------------------------------------------------------------------------- #
 # DataLoader Configuration
@@ -92,22 +106,26 @@ _C.DATALOADER.BATCH_SIZE = 8
 _C.DATALOADER.SHUFFLE = True
 _C.DATALOADER.PIN_MEMORY = True
 _C.DATALOADER.DROP_LAST = True
+_C.DATALOADER.INCLUDE_BACKGROUND = False  # Include background class in segmentation
+_C.DATALOADER.MULTISCALE = False  # Multi-scale batching
+_C.DATALOADER.LOCAL_MASKS = False  # Use local mask files
 
 # ---------------------------------------------------------------------------- #
 # Solver (Optimizer & Scheduler) Configuration
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
-_C.SOLVER.OPTIMIZER = "AdamW"  # Options: SGD, Adam, AdamW
+_C.SOLVER.OPTIMIZER = "AdamW"  # Options: SGD_optimizer, Adam_optimizer, AdamW
 _C.SOLVER.BASE_LR = 1e-3
 _C.SOLVER.WEIGHT_DECAY = 1e-4
 _C.SOLVER.MOMENTUM = 0.9  # For SGD
 _C.SOLVER.BETAS = (0.9, 0.999)  # For Adam/AdamW
 
 # Learning Rate Scheduler
-_C.SOLVER.LR_SCHEDULER = "CosineAnnealing"  # Options: CosineAnnealing, MultiStep, OneCycle
+_C.SOLVER.LR_SCHEDULER = "CosineAnnealing"  # Options: CosineAnnealing, MultiStep, Polynomial
 _C.SOLVER.WARMUP_ITERS = 1000
 _C.SOLVER.WARMUP_FACTOR = 0.001
 _C.SOLVER.MAX_ITER = 100000
+_C.SOLVER.MIN_LR = 0.0  # Minimum LR for cosine annealing
 
 # MultiStep scheduler
 _C.SOLVER.LR_STEPS = [60000, 80000]
@@ -149,15 +167,16 @@ _C.LOGGER.DEBUG_MODE = False
 _C.SEED = 42
 _C.CUDNN_BENCHMARK = True
 _C.CUDNN_DETERMINISTIC = False
+_C.EXPORT = ""  # Export format: "", "onnx"
 
 
 def get_cfg_defaults() -> CN:
     """
     Get a copy of the default configuration.
-    
+
     Returns:
         A yacs CfgNode object containing default configuration.
-        
+
     Example:
         >>> cfg = get_cfg_defaults()
         >>> cfg.MODEL.BACKBONE.NAME = 'vovnet39'

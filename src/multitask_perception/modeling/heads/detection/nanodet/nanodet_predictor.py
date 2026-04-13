@@ -23,16 +23,16 @@ class NanoDetPredictor(nn.Module):
         activation="LeakyReLU",
     ):
         super().__init__()
-        self.share_cls_reg = cfg.MODEL.HEAD.SHARE_CLS_REG
+        self.share_cls_reg = cfg.MODEL.HEADS.DETECTION.SHARE_CLS_REG
         self.activation = activation
-        self.stacked_convs = cfg.MODEL.HEAD.STACKED_CONVS
-        self.in_channels = cfg.MODEL.PAN.OUT_CHANNELS
-        self.anchor_strides = cfg.MODEL.HEAD.STRIDES
-        self.feat_channels = cfg.MODEL.HEAD.FEAT_CHANNELS
-        self.cls_out_channels = cfg.MODEL.NUM_CLASSES
-        self.num_classes = cfg.MODEL.NUM_CLASSES
-        self.reg_max = cfg.MODEL.HEAD.REG_MAX
-        self.norm_cfg = dict(type=cfg.MODEL.HEAD.NORM_CFG_TYPE)
+        self.stacked_convs = cfg.MODEL.HEADS.DETECTION.STACKED_CONVS
+        self.in_channels = cfg.MODEL.HEADS.DETECTION.PAN.OUT_CHANNELS
+        self.anchor_strides = cfg.MODEL.HEADS.DETECTION.STRIDES
+        self.feat_channels = cfg.MODEL.HEADS.DETECTION.FEAT_CHANNELS
+        self.cls_out_channels = cfg.MODEL.HEADS.DETECTION.NUM_CLASSES
+        self.num_classes = cfg.MODEL.HEADS.DETECTION.NUM_CLASSES
+        self.reg_max = cfg.MODEL.HEADS.DETECTION.REG_MAX
+        self.norm_cfg = dict(type=cfg.MODEL.HEADS.DETECTION.NORM_CFG_TYPE)
         self._init_layers()
         self.init_weights()
 

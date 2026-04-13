@@ -1,12 +1,14 @@
 TASK:
-  TYPE: "Multitask" # options are [Detection, Segmentation, Multitask]
+  ENABLED: ["detection", "segmentation"] # options are [Detection, Segmentation, Multitask]
 MODEL:
-  NUM_SEG_CLASSES: 94
-  NUM_CLASSES: 94
-  HEAD:
-    SEG_NAME: "ESPNetv2Segmentation"
-    DET_NAME: "NanoDetHead"
-    LOSS_WEIGHTS: { "seg": 1 } # ESPNetv2 does not have aux loss
+  HEADS:
+    DETECTION:
+      NUM_CLASSES: 94
+      NAME: "NanoDet"
+      LOSS_WEIGHTS: { "seg": 1 } # ESPNetv2 does not have aux loss
+    SEGMENTATION:
+      NUM_CLASSES: 94
+      NAME: "ESPNetV2"
   BACKBONE:
     NAME: "vovnet39"
     OUT_CHANNELS: (512, 768, 1024, 512, 512)
@@ -16,22 +18,22 @@ MODEL:
 INPUT:
   IMAGE_SIZE: 1024
 DATASETS:
-  TRAIN: ("vps_ah_dhl-train",)
-  TEST: ("vps_ah_dhl-val",)
+  TRAIN: ["vps_ah_dhl-train"]
+  TEST: ["vps_ah_dhl-val"]
   PATH: "/media/lensor/2TBdrive/datasets/vps_coco_datasets/1280_vps_ah_dhl"
-DATA_LOADER:
+DATALOADER:
+  BATCH_SIZE: 2
   LOCAL_MASKS: True
   NUM_WORKERS: 1
   INCLUDE_BACKGROUND: False
 SOLVER:
-  NAME: "SGD_optimizer"
+  OPTIMIZER: "SGD_optimizer"
   MAX_ITER: 80000
   LR_STEPS: [560000, 720000]
   WARMUP_ITERS: 500
   WEIGHT_DECAY: 1e-4
   GAMMA: 0.1
-  BATCH_SIZE: 2
-  LR: 1e-3
+  BASE_LR: 1e-3
 TEST:
   BATCH_SIZE: 4
 OUTPUT_DIR: "/home/lensor/Downloads/multitask_training/inference_test"

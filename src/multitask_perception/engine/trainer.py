@@ -81,11 +81,11 @@ def do_train(cfg, model,
             images = images.to(device)
             targets = targets.to(device)
             loss_dict = model(images, targets=targets)
-            if cfg.MODEL.HEAD.DET_NAME == 'CenterNetHead':
+            if cfg.MODEL.HEADS.DETECTION.NAME.lower() == 'centernet':
                 loss = loss_dict['loss']
                 loss_dict_reduced = reduce_loss_dict(loss_dict)
                 losses_reduced = loss_dict_reduced['loss']
-                if cfg.MODEL.HEAD.SEG_NAME != '':
+                if "segmentation" in cfg.TASK.ENABLED:
                     losses_reduced += loss_dict_reduced['seg_loss']
             else:
                 loss = sum(loss for loss in loss_dict.values())
@@ -116,7 +116,7 @@ def do_train(cfg, model,
                         'mem: {mem}M',
                     ]).format(
                         iter=iteration,
-                        epo=iteration // (len(data_loader.dataset) // cfg.SOLVER.BATCH_SIZE),
+                        epo=iteration // (len(data_loader.dataset) // cfg.DATALOADER.BATCH_SIZE),
                         lr=optimizer.param_groups[0]['lr'],
                         ImShape=(images.data.size(2), images.data.size(3)),
                         meters=str(meters),

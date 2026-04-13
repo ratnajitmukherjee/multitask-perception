@@ -11,13 +11,15 @@ class CenterNetHeadPredictor(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         # ------------ parsing the CenterNet Head from configuration file ------------------#
-        self.inplanes = cfg.MODEL.BACKBONE.OUT_CHANNEL
-        self.backbone_feature = cfg.MODEL.HEAD.BACKBONE_FEATURE
-        self.num_deconv_layers = cfg.MODEL.HEAD.NUM_DECONV_LAYERS
-        self.deconv_layer_config = cfg.MODEL.HEAD.DECONV_LAYER_CONFIG
-        self.deconv_kernel_config = cfg.MODEL.HEAD.DECONV_KERNEL
-        self.heads = cfg.MODEL.HEAD.HEAD_CONFIG
-        self.head_conv = cfg.MODEL.HEAD.HEAD_CONV
+        # CenterNet uses the last backbone output channel (single feature map)
+        out_channels = cfg.MODEL.BACKBONE.OUT_CHANNELS
+        self.inplanes = out_channels[-1] if isinstance(out_channels, (list, tuple)) else out_channels
+        self.backbone_feature = cfg.MODEL.HEADS.DETECTION.BACKBONE_FEATURE
+        self.num_deconv_layers = cfg.MODEL.HEADS.DETECTION.NUM_DECONV_LAYERS
+        self.deconv_layer_config = cfg.MODEL.HEADS.DETECTION.DECONV_LAYER_CONFIG
+        self.deconv_kernel_config = cfg.MODEL.HEADS.DETECTION.DECONV_KERNEL
+        self.heads = cfg.MODEL.HEADS.DETECTION.HEAD_CONFIG
+        self.head_conv = cfg.MODEL.HEADS.DETECTION.HEAD_CONV
         self.deconv_with_bias = False
         self.use_dcn = getattr(cfg.MODEL.HEADS.DETECTION, "USE_DCN", False)
 

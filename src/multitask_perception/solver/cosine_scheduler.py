@@ -12,9 +12,9 @@ def CosineLR(cfg, optimizer, milestones):
         optimizer, T_max=cfg.SOLVER.MAX_ITER, eta_min=0, last_epoch=-1
     )
     for param_group in scheduler.optimizer.param_groups:
-        param_group["lr"] = param_group["lr"] / cfg.SOLVER.BATCH_SIZE
+        param_group["lr"] = param_group["lr"] / cfg.DATALOADER.BATCH_SIZE
         param_group["weight_decay"] = (
-            param_group["weight_decay"] * cfg.SOLVER.BATCH_SIZE
+            param_group["weight_decay"] * cfg.DATALOADER.BATCH_SIZE
         )
     return scheduler
 
@@ -24,17 +24,17 @@ def WarmupCosineLR(cfg, optimizer, milestones):
     scheduler = CosineAnnealingWarmUpRestarts(
         optimizer=optimizer,
         weight_decay=cfg.SOLVER.WEIGHT_DECAY,
-        batch_size=cfg.SOLVER.BATCH_SIZE,
-        eta_min=cfg.SCHEDULER.MIN_LR,
+        batch_size=cfg.DATALOADER.BATCH_SIZE,
+        eta_min=cfg.SOLVER.MIN_LR,
         T_0=cfg.SOLVER.MAX_ITER,
         T_mult=1,
         T_up=cfg.SOLVER.WARMUP_ITERS,
         gamma=1.0,
     )
     for param_group in scheduler.optimizer.param_groups:
-        param_group["lr"] = param_group["lr"] / cfg.SOLVER.BATCH_SIZE
+        param_group["lr"] = param_group["lr"] / cfg.DATALOADER.BATCH_SIZE
         param_group["weight_decay"] = (
-            param_group["weight_decay"] * cfg.SOLVER.BATCH_SIZE
+            param_group["weight_decay"] * cfg.DATALOADER.BATCH_SIZE
         )
     return scheduler
 

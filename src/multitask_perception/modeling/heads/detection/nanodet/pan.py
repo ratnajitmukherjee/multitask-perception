@@ -46,7 +46,7 @@ class PAN(nn.Module):
     ):
         super().__init__()
         in_channels = cfg.MODEL.BACKBONE.OUT_CHANNELS
-        out_channels = cfg.MODEL.PAN.OUT_CHANNELS
+        out_channels = cfg.MODEL.HEADS.DETECTION.PAN.OUT_CHANNELS
         num_outs = len(in_channels)
         self.in_channels = in_channels
         self.out_channels = out_channels

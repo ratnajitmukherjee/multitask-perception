@@ -7,7 +7,6 @@ from multitask_perception.data import samplers
 from multitask_perception.data.datasets import build_dataset
 from multitask_perception.data.transforms import build_transforms, build_target_transform
 from multitask_perception.structures.container import Container
-# TODO: yolo_utils not yet ported — from od.utils.yolo_utils import resize, get_different_scale
 
 
 class BatchCollator:
@@ -89,13 +88,13 @@ def make_data_loader(cfg, is_train=True, distributed=False, max_iter=None, start
         else:
             sampler = torch.utils.data.sampler.SequentialSampler(dataset)
 
-        batch_size = cfg.SOLVER.BATCH_SIZE if is_train else cfg.TEST.BATCH_SIZE
+        batch_size = cfg.DATALOADER.BATCH_SIZE if is_train else cfg.TEST.BATCH_SIZE
         batch_sampler = torch.utils.data.sampler.BatchSampler(sampler=sampler, batch_size=batch_size, drop_last=is_train)
         if max_iter is not None:
             batch_sampler = samplers.IterationBasedBatchSampler(batch_sampler, num_iterations=max_iter, start_iter=start_iter)
 
-        data_loader = DataLoader(dataset, num_workers=cfg.DATA_LOADER.NUM_WORKERS, batch_sampler=batch_sampler,
-                                 pin_memory=cfg.DATA_LOADER.PIN_MEMORY, collate_fn=MultiScaleBatchCollator(is_train, batch_size) if cfg.DATA_LOADER.MULTISCALE else BatchCollator(is_train,cfg.MODEL.HEAD.DET_NAME))
+        data_loader = DataLoader(dataset, num_workers=cfg.DATALOADER.NUM_WORKERS, batch_sampler=batch_sampler,
+                                 pin_memory=cfg.DATALOADER.PIN_MEMORY, collate_fn=MultiScaleBatchCollator(is_train, batch_size) if cfg.DATALOADER.MULTISCALE else BatchCollator(is_train,cfg.MODEL.HEADS.DETECTION.NAME))
         data_loaders.append(data_loader)
 
     if is_train:

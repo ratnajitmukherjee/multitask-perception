@@ -58,11 +58,11 @@ def main():
     # ---- Load config ----
     cfg = get_cfg_defaults()
 
-    # Merge head-specific sub-config if detection head is specified
+    # Merge head-specific sub-config if detection is enabled
     raw_cfg = yaml.load(open(args.config_file), Loader=yaml.FullLoader)
-    task_type = raw_cfg.get("TASK", {}).get("TYPE", "Detection")
-    if task_type in ("Detection", "Multitask"):
-        det_head = raw_cfg["MODEL"]["HEAD"]["DET_NAME"]
+    tasks = raw_cfg.get("TASK", {}).get("ENABLED", ["detection"])
+    if "detection" in tasks:
+        det_head = raw_cfg["MODEL"]["HEADS"]["DETECTION"]["NAME"]
         if det_head in sub_cfg_dict:
             cfg.merge_from_other_cfg(sub_cfg_dict[det_head])
 
@@ -124,30 +124,14 @@ def infer_single_image(image_path, model, transforms, device, cfg, args):
     height, width = image.shape[:2]
     image_preprocessed = transforms(image)[0].unsqueeze(0)
 
-    task_type = cfg.TASK.TYPE if hasattr(cfg.TASK, "TYPE") else "Detection"
+    enabled = cfg.TASK.ENABLED
+    has_det = "detection" in enabled
+    has_seg = "segmentation" in enabled
     det_result = None
     seg_result = None
 
-    if task_type == "Detection":
-        output = model(image_preprocessed.to(device))
-        detections = output[0] if isinstance(output, (list, tuple)) else output
-        boxes, labels, scores = process_detections(detections, args.score_threshold)
-        det_result, _ = convert_to_format(
-            fmt=args.output_format, image=image,
-            boxes=boxes, labels=labels, scores=scores,
-            seg_mask=None, seg_class_ids=None,
-            det_class_names=None, seg_class_names=None,
-        )
-    elif task_type == "Segmentation":
-        segmentations = model(image_preprocessed.to(device))
-        seg_mask, seg_class_ids = process_segmentations(segmentations, width, height)
-        _, seg_result = convert_to_format(
-            fmt=args.output_format, image=image,
-            boxes=None, labels=None, scores=None,
-            seg_mask=seg_mask, seg_class_ids=seg_class_ids,
-            det_class_names=None, seg_class_names=None,
-        )
-    elif task_type == "Multitask":
+    if has_det and has_seg:
+        # Multitask
         detections, segmentations = model(image_preprocessed.to(device))
         boxes, labels, scores = process_detections(detections, args.score_threshold)
         seg_mask, seg_class_ids = process_segmentations(segmentations, width, height)
@@ -157,8 +141,29 @@ def infer_single_image(image_path, model, transforms, device, cfg, args):
             seg_mask=seg_mask, seg_class_ids=seg_class_ids,
             det_class_names=None, seg_class_names=None,
         )
+    elif has_det:
+        # Detection only
+        output = model(image_preprocessed.to(device))
+        detections = output[0] if isinstance(output, (list, tuple)) else output
+        boxes, labels, scores = process_detections(detections, args.score_threshold)
+        det_result, _ = convert_to_format(
+            fmt=args.output_format, image=image,
+            boxes=boxes, labels=labels, scores=scores,
+            seg_mask=None, seg_class_ids=None,
+            det_class_names=None, seg_class_names=None,
+        )
+    elif has_seg:
+        # Segmentation only
+        segmentations = model(image_preprocessed.to(device))
+        seg_mask, seg_class_ids = process_segmentations(segmentations, width, height)
+        _, seg_result = convert_to_format(
+            fmt=args.output_format, image=image,
+            boxes=None, labels=None, scores=None,
+            seg_mask=seg_mask, seg_class_ids=seg_class_ids,
+            det_class_names=None, seg_class_names=None,
+        )
     else:
-        raise NotImplementedError(f"Task type '{task_type}' is not implemented.")
+        raise NotImplementedError(f"No recognized tasks in TASK.ENABLED: {enabled}")
 
     # Save result
     save_result(args.output_dir, args.output_format, image_basename, det_result, seg_result)

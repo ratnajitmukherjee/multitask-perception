@@ -6,36 +6,6 @@ from multitask_perception.modeling.heads.detection.centernet.utils import (
 )
 from multitask_perception.modeling.heads.detection.centernet.utils import gaussian2D
 from multitask_perception.modeling.heads.detection.centernet.utils import gaussian_radius
-from multitask_perception.utils import box_utils
-
-
-class SSDTargetTransform:
-    def __init__(
-        self, center_form_priors, center_variance, size_variance, iou_threshold
-    ):
-        self.center_form_priors = center_form_priors
-        self.corner_form_priors = box_utils.center_form_to_corner_form(
-            center_form_priors
-        )
-        self.center_variance = center_variance
-        self.size_variance = size_variance
-        self.iou_threshold = iou_threshold
-
-    def __call__(self, gt_boxes, gt_labels):
-        if type(gt_boxes) is np.ndarray:
-            gt_boxes = torch.from_numpy(gt_boxes)
-        if type(gt_labels) is np.ndarray:
-            gt_labels = torch.from_numpy(gt_labels)
-        boxes, labels = box_utils.assign_priors(
-            gt_boxes, gt_labels, self.corner_form_priors, self.iou_threshold
-        )
-        boxes = box_utils.corner_form_to_center_form(boxes)
-        locations = box_utils.convert_boxes_to_locations(
-            boxes, self.center_form_priors, self.center_variance, self.size_variance
-        )
-        return locations, labels
-
-
 class NanoDetTargetTransform:
     def __init__(
         self,
@@ -49,15 +19,15 @@ class NanoDetTargetTransform:
 class CenterNetHeadTransform:
     def __init__(self, cfg):
         self.max_objs = 128
-        self.num_classes = cfg.MODEL.NUM_CLASSES
+        self.num_classes = cfg.MODEL.HEADS.DETECTION.NUM_CLASSES
 
         self.output_h = (
-            np.power(2, cfg.MODEL.HEAD.NUM_DECONV_LAYERS)
-            * cfg.MODEL.HEAD.BACKBONE_FEATURE
+            np.power(2, cfg.MODEL.HEADS.DETECTION.NUM_DECONV_LAYERS)
+            * cfg.MODEL.HEADS.DETECTION.BACKBONE_FEATURE
         )
         self.output_w = (
-            np.power(2, cfg.MODEL.HEAD.NUM_DECONV_LAYERS)
-            * cfg.MODEL.HEAD.BACKBONE_FEATURE
+            np.power(2, cfg.MODEL.HEADS.DETECTION.NUM_DECONV_LAYERS)
+            * cfg.MODEL.HEADS.DETECTION.BACKBONE_FEATURE
         )
 
     def __call__(self, gt_boxes, gt_labels):

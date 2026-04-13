@@ -8,4 +8,4 @@ __all__ = ["make_optimizer", "SGD_optimizer", "ADAM_optimizer", "CosineLR"]
 
 
 def make_optimizer(cfg, model, lr=None):
-    return registry.SOLVERS[cfg.SOLVER.NAME](cfg, model, lr)
+    return registry.SOLVERS[cfg.SOLVER.OPTIMIZER](cfg, model, lr)

@@ -8,7 +8,7 @@ from multitask_perception.solver import registry
 def PolynomialLR(cfg, optimizer, milestones):
     return PolynomialLR(
         optimizer=optimizer,
-        batch_size=cfg.SOLVER.BATCH_SIZE,
+        batch_size=cfg.DATALOADER.BATCH_SIZE,
         max_iter=cfg.SOLVER.MAX_ITER,
     )
 

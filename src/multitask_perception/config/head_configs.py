@@ -2,11 +2,11 @@
 Head-specific configuration nodes.
 
 Each detection head may introduce its own config keys (e.g. NanoDet needs
-MODEL.PAN, MODEL.HEAD.REG_MAX, etc.). These sub-configs use new_allowed=True
+PAN, REG_MAX, STRIDES, etc.). These sub-configs use new_allowed=True
 so that YAML experiment files can add arbitrary keys without modifying defaults.
 
 The sub_cfg_dict maps head names (as they appear in the YAML config under
-MODEL.HEAD.DET_NAME) to their respective CfgNode.
+MODEL.HEADS.DETECTION.NAME) to their respective CfgNode.
 """
 from yacs.config import CfgNode as CN
 
@@ -14,25 +14,27 @@ from yacs.config import CfgNode as CN
 # CenterNet: empty node, all keys come from the YAML config
 centernet_cfg = CN(new_allowed=True)
 
-# NanoDet: provides defaults for PAN, HEAD, and LOSS sub-configs
+# NanoDet: provides defaults for detection head and loss sub-configs
 nanodet_cfg = CN(new_allowed=True)
 nanodet_cfg.MODEL = CN(new_allowed=True)
-nanodet_cfg.MODEL.PAN = CN(new_allowed=True)
-nanodet_cfg.MODEL.PAN.OUT_CHANNELS = 96
-nanodet_cfg.MODEL.HEAD = CN(new_allowed=True)
-nanodet_cfg.MODEL.HEAD.FEAT_CHANNELS = 96
-nanodet_cfg.MODEL.HEAD.STACKED_CONVS = 2
-nanodet_cfg.MODEL.HEAD.SHARE_CLS_REG = True
-nanodet_cfg.MODEL.HEAD.REG_MAX = 7
-nanodet_cfg.MODEL.HEAD.STRIDES = [8, 16, 32]
-nanodet_cfg.MODEL.HEAD.NORM_CFG_TYPE = "BN"
-nanodet_cfg.MODEL.LOSS = CN(new_allowed=True)
-nanodet_cfg.MODEL.LOSS.OCTAVE_BASE_SCALE = 5
-nanodet_cfg.MODEL.LOSS.SCALES_PER_OCTAVE = 1
+nanodet_cfg.MODEL.HEADS = CN(new_allowed=True)
+nanodet_cfg.MODEL.HEADS.DETECTION = CN(new_allowed=True)
+nanodet_cfg.MODEL.HEADS.DETECTION.FEAT_CHANNELS = 96
+nanodet_cfg.MODEL.HEADS.DETECTION.STACKED_CONVS = 2
+nanodet_cfg.MODEL.HEADS.DETECTION.SHARE_CLS_REG = True
+nanodet_cfg.MODEL.HEADS.DETECTION.REG_MAX = 7
+nanodet_cfg.MODEL.HEADS.DETECTION.STRIDES = [8, 16, 32]
+nanodet_cfg.MODEL.HEADS.DETECTION.NORM_CFG_TYPE = "BN"
+nanodet_cfg.MODEL.HEADS.DETECTION.PAN = CN(new_allowed=True)
+nanodet_cfg.MODEL.HEADS.DETECTION.PAN.OUT_CHANNELS = 96
+nanodet_cfg.MODEL.HEADS.DETECTION.LOSS = CN(new_allowed=True)
+nanodet_cfg.MODEL.HEADS.DETECTION.LOSS.OCTAVE_BASE_SCALE = 5
+nanodet_cfg.MODEL.HEADS.DETECTION.LOSS.SCALES_PER_OCTAVE = 1
 
 
-# Mapping from detection head name to its sub-config
+# Mapping from detection head name to its sub-config.
+# Keys must match MODEL.HEADS.DETECTION.NAME values in YAML configs.
 sub_cfg_dict = {
-    "CenterNetHead": centernet_cfg,
-    "NanoDetHead": nanodet_cfg,
+    "CenterNet": centernet_cfg,
+    "NanoDet": nanodet_cfg,
 }

@@ -25,18 +25,18 @@ class NanoDetPostProcess(nn.Module):
     ):
         super().__init__()
         self.img_size = (cfg.INPUT.IMAGE_SIZE, cfg.INPUT.IMAGE_SIZE)
-        self.num_classes = cfg.MODEL.NUM_CLASSES
-        self.cls_out_channels = cfg.MODEL.NUM_CLASSES
-        self.anchor_strides = cfg.MODEL.HEAD.STRIDES
-        self.reg_max = cfg.MODEL.HEAD.REG_MAX
+        self.num_classes = cfg.MODEL.HEADS.DETECTION.NUM_CLASSES
+        self.cls_out_channels = cfg.MODEL.HEADS.DETECTION.NUM_CLASSES
+        self.anchor_strides = cfg.MODEL.HEADS.DETECTION.STRIDES
+        self.reg_max = cfg.MODEL.HEADS.DETECTION.REG_MAX
 
         self.distribution_project = Integral(self.reg_max)
 
-        octave_base_scale = cfg.MODEL.LOSS.OCTAVE_BASE_SCALE
-        scales_per_octave = cfg.MODEL.LOSS.SCALES_PER_OCTAVE
+        octave_base_scale = cfg.MODEL.HEADS.DETECTION.LOSS.OCTAVE_BASE_SCALE
+        scales_per_octave = cfg.MODEL.HEADS.DETECTION.LOSS.SCALES_PER_OCTAVE
 
         self.anchor_base_sizes = (
-            list(cfg.MODEL.HEAD.STRIDES)
+            list(cfg.MODEL.HEADS.DETECTION.STRIDES)
             if anchor_base_sizes is None
             else anchor_base_sizes
         )
