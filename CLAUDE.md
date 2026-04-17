@@ -3,8 +3,8 @@
 ## Project
 Unified multitask perception system for autonomous driving: object detection + semantic segmentation + monocular depth estimation with a shared backbone. Built by Ratnajit (Engineering Manager at TomTom, 6yr DL experience).
 
-## Current Status (2026-04-14)
-Phase 1 (Infrastructure) complete. Phase 2 (Migration) **config schema unified** — Option A (forward migration) applied across 58 files. SSD dead code removed. All 32 YAML configs verified loading. Next: pretrained backbone weights, then dataset preparation.
+## Current Status (2026-04-17)
+Phase 1 (Infrastructure) complete. Phase 2 (Migration) complete — config schema unified (Option A), SSD dead code removed, 32 YAML configs verified, GitHub Wiki published. **Next: Phase 2.5** — pretrained backbone weights, device-agnostic fixes, smoke test. Then Phase 3 (dataset preparation).
 
 ## Config Schema (UNIFIED — NEW)
 The codebase uses a single, consistent config schema:
@@ -65,6 +65,11 @@ src/multitask_perception/
 3. Undefined `CenternetHelper` ONNX references in CenterNet decode
 4. Segmentation heads are placeholder stubs
 5. Depth head not implemented
+
+## Claude Memory (Cross-Machine Sync)
+- **Location:** `.claude/memory/` — checked into git for cross-machine context
+- Contains: user profile, working style feedback, project status, config migration history, doc references
+- **REMOVE before making repo public** (pre-release cleanup task)
 
 ## Code Style
 - Black + isort formatting
